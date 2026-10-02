@@ -3,7 +3,7 @@ class AppConstants {
 
   // ─── WebSocket ──────────────────────────────────────────────────────────────
   static const int wsPort = 8080;
-  static const String wsPath = '/score';
+  static const String wsPath = '';
   static const Duration wsReconnectDelay = Duration(seconds: 2);
   static const Duration wsReconnectMaxDelay = Duration(seconds: 30);
   static const int wsReconnectMaxAttempts = 20;

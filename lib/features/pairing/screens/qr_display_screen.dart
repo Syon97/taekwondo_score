@@ -26,6 +26,40 @@ class _QrDisplayScreenState extends ConsumerState<QrDisplayScreen> {
     });
   }
 
+  void _showQrModal(BuildContext context, String? data) {
+    if (data == null) return;
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('Scan to Join', style: TextStyle(
+              color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            QrImageView(
+              data: data,
+              version: QrVersions.auto,
+              size: 280,
+              backgroundColor: Colors.white,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.square, color: Color(0xFF0A0A0A)),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square, color: Color(0xFF0A0A0A)),
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close', style: TextStyle(color: Colors.black54)),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(sessionProvider);
@@ -79,7 +113,13 @@ class _QrDisplayScreenState extends ConsumerState<QrDisplayScreen> {
                   const Text('SCAN TO JOIN', style: TextStyle(color: AppColors.textSecondary,
                       fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 2)),
                   const SizedBox(height: 16),
-                  _QrWidget(data: qrData, isLoading: server.isStarting),
+                  GestureDetector(
+                    onTap: () => _showQrModal(context, qrData),
+                    child: _QrWidget(data: qrData, isLoading: server.isStarting),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Tap to enlarge', style: TextStyle(
+                    color: AppColors.textDisabled, fontSize: 11)),
                   const SizedBox(height: 16),
                   if (server.localIp != null)
                     GestureDetector(

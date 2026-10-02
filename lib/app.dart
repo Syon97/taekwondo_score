@@ -11,6 +11,7 @@ import 'features/kyorugi/screens/judge_panel_screen.dart';
 import 'features/kyorugi/screens/chief_jury_screen.dart';
 import 'features/history/screens/match_history_screen.dart';
 import 'features/poomsae/screens/poomsae_stub_screen.dart';
+import 'features/history/screens/match_detail_screen.dart';
 
 final _router = GoRouter(
   initialLocation: '/',
@@ -31,6 +32,11 @@ final _router = GoRouter(
     GoRoute(path: '/kyorugi/chief', builder: (_, __) => const ChiefJuryScreen()),
     GoRoute(path: '/poomsae', builder: (_, __) => const PoomsaeStubScreen()),
     GoRoute(path: '/history', builder: (_, __) => const MatchHistoryScreen()),
+    GoRoute(
+      path: '/history/:matchId',
+      builder: (_, state) =>
+          MatchDetailScreen(matchId: state.pathParameters['matchId']!),
+    ),
   ],
 );
 

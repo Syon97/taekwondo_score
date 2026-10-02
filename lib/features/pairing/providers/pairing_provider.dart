@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taekwondo_score/services/persistence/match_repository.dart';
 import '../../../core/models/match_event.dart';
 import '../../../services/websocket/ws_server.dart';
 import '../../setup/providers/session_provider.dart';
@@ -39,13 +40,30 @@ class ServerNotifier extends Notifier<ServerState> {
     if (session == null) return;
     state = state.copyWith(isStarting: true, error: null);
     try {
-      _server = WsServer(onMatchStateChanged: (ms) => state = state.copyWith(matchState: ms));
+      final repository = ref.read(matchRepositoryProvider);
+      _server = WsServer(
+        onMatchStateChanged: (ms) {
+          state = ServerState(
+            isStarting: false,
+            isRunning: true,
+            localIp: state.localIp,
+            matchState: ms,
+          );
+        },
+        repository: repository,
+        matchMode: session.mode,
+        roundDurationSeconds: session.roundConfig.roundDurationSeconds,
+      );
       final initialState = session.toInitialMatchState();
       final ip = await _server!.start(initialState, session.sessionToken);
       ref.read(sessionProvider.notifier).setServerIp(ip);
-      state = state.copyWith(isStarting: false, isRunning: true, localIp: ip, matchState: initialState);
+      state = state.copyWith(
+        isStarting: false, isRunning: true,
+        localIp: ip, matchState: initialState,
+      );
     } catch (e) {
-      state = state.copyWith(isStarting: false, isRunning: false, error: 'Failed to start: $e');
+      state = state.copyWith(isStarting: false, isRunning: false,
+          error: 'Failed to start: $e');
     }
   }
 

@@ -4,11 +4,13 @@ import 'dart:convert';
 
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:taekwondo_score/core/enums/app_mode.dart';
 import 'package:taekwondo_score/core/enums/match_status.dart';
 import 'package:taekwondo_score/core/models/consensus_result.dart';
 import 'package:taekwondo_score/core/models/judge.dart';
 import 'package:taekwondo_score/core/models/match_event.dart';
 import 'package:taekwondo_score/core/models/vote.dart';
+import 'package:taekwondo_score/services/persistence/match_repository.dart';
 import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -24,9 +26,18 @@ import '../consensus/consensus_engine.dart';
 typedef OnMatchStateChanged = void Function(MatchState state);
 
 class WsServer {
-  WsServer({required this.onMatchStateChanged});
+  WsServer({
+    required this.onMatchStateChanged,
+    this.repository,
+    this.matchMode = AppMode.kyorugi,
+    this.roundDurationSeconds = 120,
+  });
 
   final OnMatchStateChanged onMatchStateChanged;
+  final MatchRepository? repository;
+  final AppMode matchMode;
+  final int roundDurationSeconds;
+  DateTime? _matchStartedAt;
 
   HttpServer? _server;
   final Map<String, WebSocketChannel> _clients = {}; // senderId → channel
@@ -44,6 +55,7 @@ class WsServer {
   Future<String> start(MatchState initialState, String sessionToken) async {
     _matchState = initialState;
     _sessionToken = sessionToken;
+    _matchStartedAt = DateTime.now();
 
     _consensusEngine = ConsensusEngine(
       matchId: initialState.matchId,
@@ -288,6 +300,14 @@ class WsServer {
         }
       }
 
+      if (repository != null) {
+        repository!.saveConsensusEvent(
+          matchId: _matchState!.matchId,
+          result: result,
+          round: _matchState!.currentRound,
+        );
+      }
+
       // Start undo window
       state = state.copyWith(
         lastResult: result,
@@ -444,6 +464,17 @@ class WsServer {
       payload: {'winner': winnerStr, 'reason': reason},
     ));
     _broadcastState();
+
+    if (repository != null && _matchState != null) {
+      repository!.saveCompletedMatch(
+        _matchState!,
+        matchId: _matchState!.matchId,
+        mode: matchMode,
+        roundDurationSeconds: roundDurationSeconds,
+        createdAt: _matchStartedAt ?? DateTime.now(),
+      );
+    }
+
     onMatchStateChanged(_matchState!);
   }
 
