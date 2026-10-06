@@ -6,8 +6,6 @@ import 'package:path/path.dart' as p;
 
 part 'app_database.g.dart';
 
-// ─── Tables ──────────────────────────────────────────────────────────────────
-
 class MatchRecords extends Table {
   TextColumn get id => text()();
   TextColumn get chungName => text()();
@@ -33,8 +31,8 @@ class ConsensusEventRecords extends Table {
   TextColumn get id => text()();
   TextColumn get matchId => text()();
   TextColumn get windowId => text()();
-  TextColumn get outcome => text()(); // awarded | noConsensus | cancelled
-  TextColumn get awardedTo => text().nullable()(); // chung | hong
+  TextColumn get outcome => text()();
+  TextColumn get awardedTo => text().nullable()();
   TextColumn get technique => text().nullable()();
   IntColumn get pointsAwarded => integer()();
   IntColumn get round => integer()();
@@ -44,16 +42,12 @@ class ConsensusEventRecords extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-// ─── Database ─────────────────────────────────────────────────────────────────
-
 @DriftDatabase(tables: [MatchRecords, ConsensusEventRecords])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
   int get schemaVersion => 1;
-
-  // ── Match operations ──────────────────────────────────────────────────────
 
   Future<void> insertMatch(MatchRecordsCompanion match) =>
       into(matchRecords).insert(match, mode: InsertMode.insertOrReplace);
@@ -73,8 +67,6 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteMatch(String id) =>
       (delete(matchRecords)..where((t) => t.id.equals(id))).go();
-
-  // ── Consensus event operations ────────────────────────────────────────────
 
   Future<void> insertConsensusEvent(ConsensusEventRecordsCompanion event) =>
       into(consensusEventRecords).insert(event);
