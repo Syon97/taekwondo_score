@@ -41,8 +41,10 @@ class ModeSelectScreen extends ConsumerWidget {
                     description: '5 umpires · Individual decimal scoring',
                     color: AppColors.textDisabled,
                     icon: Icons.self_improvement,
-                    comingSoon: true,
-                    onTap: () {},
+                    onTap: () {
+                      ref.read(sessionProvider.notifier).startNew(mode: AppMode.poomsae);
+                      context.push('/poomsae');
+                    },
                   ),
                   const SizedBox(height: 48),
                   GestureDetector(

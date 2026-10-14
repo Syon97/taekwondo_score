@@ -10,7 +10,11 @@ import 'features/kyorugi/screens/scoreboard_screen.dart';
 import 'features/kyorugi/screens/judge_panel_screen.dart';
 import 'features/kyorugi/screens/chief_jury_screen.dart';
 import 'features/history/screens/match_history_screen.dart';
-import 'features/poomsae/screens/poomsae_stub_screen.dart';
+// import 'features/poomsae/screens/poomsae_stub_screen.dart';
+import 'features/poomsae/screens/poomsae_setup_screen.dart';
+import 'features/poomsae/screens/poomsae_scoreboard_screen.dart';
+import 'features/poomsae/screens/poomsae_judge_screen.dart';
+import 'features/poomsae/screens/poomsae_results_screen.dart';
 import 'features/history/screens/match_detail_screen.dart';
 
 final _router = GoRouter(
@@ -30,7 +34,17 @@ final _router = GoRouter(
       },
     ),
     GoRoute(path: '/kyorugi/chief', builder: (_, __) => const ChiefJuryScreen()),
-    GoRoute(path: '/poomsae', builder: (_, __) => const PoomsaeStubScreen()),
+    // GoRoute(path: '/poomsae', builder: (_, __) => const PoomsaeStubScreen()),
+    GoRoute(path: '/poomsae', builder: (_, __) => const PoomsaeSetupScreen()),
+    GoRoute(path: '/poomsae/display',
+        builder: (_, __) => const PoomsaeScoreboardScreen()),
+    GoRoute(
+      path: '/poomsae/judge/:slot',
+      builder: (_, state) => PoomsaeJudgeScreen(
+          judgeSlot: int.parse(state.pathParameters['slot'] ?? '1')),
+    ),
+    GoRoute(path: '/poomsae/results',
+    builder: (_, __) => const PoomsaeResultsScreen()),
     GoRoute(path: '/history', builder: (_, __) => const MatchHistoryScreen()),
     GoRoute(
       path: '/history/:matchId',

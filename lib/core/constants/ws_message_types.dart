@@ -8,6 +8,18 @@ class WsMessageTypes {
   static const String judgeConnect = 'judge_connect';
   static const String judgeDisconnect = 'judge_disconnect';
   static const String ping = 'ping';
+  static const String poomsaeSubmitScore = 'poomsae_submit_score';
+
+  // ─── Poomsae Server -> All ──────────────────────────────────────────────────
+  static const String poomsaeSessionState = 'poomsae_session_state';
+  static const String poomsaeScoringOpen = 'poomsae_scoring_open';
+  static const String poomsaeResultCalculated = 'poomsae_result_calculated';
+
+  // ─── Poomsae Chief Jury -> Server ────────────────────────────────────────────
+  static const String poomsaeStartPerformance = 'poomsae_start_performance';
+  static const String poomsaeOpenScoring = 'poomsae_open_scoring';
+  static const String poomsaeCalculate = 'poomsae_calculate';
+  static const String poomsaeNextAthlete = 'poomsae_next_athlete';
 
   // ─── Chief Jury → Server ────────────────────────────────────────────────────
   static const String timerStart = 'timer_start';

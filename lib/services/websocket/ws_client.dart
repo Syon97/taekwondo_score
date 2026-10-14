@@ -36,6 +36,7 @@ class WsClient {
     required this.onConnectionChange,
     required this.onConsensusOpen,
     required this.onConsensusResult,
+    this.onPoomsaeScoringOpen,
   });
 
   final String deviceId;
@@ -46,6 +47,7 @@ class WsClient {
   final OnConnectionChange onConnectionChange;
   final OnConsensusOpen onConsensusOpen;
   final OnConsensusResult onConsensusResult;
+  final void Function(bool isOpen)? onPoomsaeScoringOpen;
 
   WebSocketChannel? _channel;
   WsConnectionState _connectionState = WsConnectionState.disconnected;
@@ -105,6 +107,18 @@ class WsClient {
     } catch (e) {
       _onDisconnected();
     }
+  }
+
+  void sendRawPayload({
+    required String type,
+    required Map<String, dynamic> payload,
+  }) {
+    _send(WsMessage.create(
+      type: type,
+      senderId: deviceId,
+      senderRole: DeviceRole.judge,
+      payload: payload,
+    ));
   }
 
   void _onDisconnected() {
@@ -196,6 +210,18 @@ class WsClient {
 
         case WsMessageTypes.pong:
           _handlePong(msg);
+          break;
+
+        case WsMessageTypes.poomsaeScoringOpen:
+          onPoomsaeScoringOpen?.call(true);
+          break;
+
+        case WsMessageTypes.poomsaeSessionState:
+          // If status changes away from scoring, close it
+          final status = msg.payload['status'] as String?;
+            if (status != null && status != 'scoring') {
+              onPoomsaeScoringOpen?.call(false);
+            }
           break;
 
         case WsMessageTypes.wsError:

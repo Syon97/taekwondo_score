@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:taekwondo_score/core/constants/ws_message_types.dart';
 import 'package:uuid/uuid.dart';
 import '../enums/fighter_side.dart';
 import '../enums/technique.dart';
@@ -12,27 +13,32 @@ class WsClientState {
   final String? activeWindowId;
   final int? activeWindowExpiresAt;
   final ConsensusResult? lastResult;
+  final bool poomsaeScoringOpen;
 
   const WsClientState({this.connectionState = WsConnectionState.disconnected,
-    this.matchState, this.activeWindowId, this.activeWindowExpiresAt, this.lastResult});
+    this.matchState, this.activeWindowId, this.activeWindowExpiresAt,
+    this.lastResult, this.poomsaeScoringOpen = false,});
 
   bool get isConnected => connectionState == WsConnectionState.connected;
 
   WsClientState copyWith({WsConnectionState? connectionState, MatchState? matchState,
     String? activeWindowId, int? activeWindowExpiresAt,
-    bool clearWindow = false, ConsensusResult? lastResult}) {
+    bool clearWindow = false, ConsensusResult? lastResult,
+    bool? poomsaeScoringOpen }) {
     return WsClientState(
       connectionState: connectionState ?? this.connectionState,
       matchState: matchState ?? this.matchState,
       activeWindowId: clearWindow ? null : activeWindowId ?? this.activeWindowId,
       activeWindowExpiresAt: clearWindow ? null : activeWindowExpiresAt ?? this.activeWindowExpiresAt,
       lastResult: lastResult ?? this.lastResult,
+      poomsaeScoringOpen: poomsaeScoringOpen ?? this.poomsaeScoringOpen,
     );
   }
 }
 
 class WsClientNotifier extends Notifier<WsClientState> {
   WsClient? _client;
+  bool poomsaeScoringOpen = false;
   final _deviceId = const Uuid().v4();
 
   @override
@@ -48,8 +54,27 @@ class WsClientNotifier extends Notifier<WsClientState> {
       onConnectionChange: (cs) => state = state.copyWith(connectionState: cs),
       onConsensusOpen: (wId, exp) => state = state.copyWith(activeWindowId: wId, activeWindowExpiresAt: exp),
       onConsensusResult: (r) => state = state.copyWith(lastResult: r, clearWindow: true),
+      onPoomsaeScoringOpen: (isOpen) {
+        state = state.copyWith(poomsaeScoringOpen: isOpen);
+      },
     );
     await _client!.connect(ip, port);
+  }
+
+  void sendPoomsaeScore({
+    required double accuracy,
+    required double presentation,
+  }) {
+    if (_client == null) return;
+    // Reuse the raw send mechanism
+    _client!.sendRawPayload(
+      type: WsMessageTypes.poomsaeSubmitScore,
+      payload: {
+        'accuracy': accuracy,
+        'presentation': presentation,
+        'clientTs': DateTime.now().millisecondsSinceEpoch,
+      },
+    );
   }
 
   void sendVote({required FighterSide fighter, required Technique technique}) {
